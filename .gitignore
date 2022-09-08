@@ -1,0 +1,4 @@
+# Project exclude paths
+/network_storege_2022-main/cloud-application/target/
+/network_storege_2022-main/cloud-model/target/
+/network_storege_2022-main/cloud-server/target/
