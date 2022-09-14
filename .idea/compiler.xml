@@ -17,6 +17,7 @@
       <module name="cloud-model" target="17" />
       <module name="cloud-server" target="17" />
       <module name="geek-cloud" target="17" />
+      <module name="network_storege_2022-main" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>
