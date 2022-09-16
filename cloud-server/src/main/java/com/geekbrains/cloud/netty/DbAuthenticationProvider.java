@@ -23,4 +23,17 @@ public class DbAuthenticationProvider {
         }
         return " Логин и пароль введены неверно ";
     }
+    public boolean booleanNicknameByLoginAndPassword(String login, String password) {
+        String query = String.format("select * from users where name = '%s' and score = '%s';", login, password);
+        try (ResultSet rs = dbConnection.getStmt().executeQuery(query)) {
+            while (rs.next()) {
+                System.out.println(rs.getString(2));
+                return true;
+
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
