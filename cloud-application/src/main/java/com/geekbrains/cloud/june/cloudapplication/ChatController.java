@@ -6,9 +6,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import lombok.SneakyThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,19 +37,18 @@ public class ChatController implements Initializable {
     @FXML
     public TextField client;
     @FXML
+    public ListView<String> clientView;
+    @FXML
+    public ListView<String> serverView;
+    @FXML
     public TextField login;
     @FXML
     public TextField password;
 
-
-
     private String homeDir;
 
-    @FXML
-    public ListView<String> clientView;
+    private  AuthController authController;
 
-    @FXML
-    public ListView<String> serverView;
 
 
 
@@ -67,14 +68,42 @@ public class ChatController implements Initializable {
             while (true) {
                 // выводим все файли с сервера
                 CloudMessage message = network.read();
-                if (message instanceof ListFiles listFiles) {
+                if (message instanceof Auth authMessage) {
                     Platform.runLater(() -> {
-                        // передаем имя дирретории чтды панель авторизации исчезла
-                       // username = listFiles.getName();
+                        if (authMessage.isAuth()) {
+                            // если пролучили от севрера что такой клиент есть в базе данных
+                            // передаем имя дирретории чтды панель авторизации исчезла
+
+                            try {
+
+                                System.out.println(login.getText() + "login.getText()");
+
+                                ChatApplication.setRoot("hello-view");
+                               // authClient();
+                                 network.write( new AuthToServer(login.getText()));
+
+                                // переключаем панель
+//                                ChatApplication.setRoot("hello-view");
+
+                            } catch (IOException e) {
+                                System.err.println(e.getMessage());
+                            }
+                        } else {
+                            System.out.println("введены неверные данные ");
+                        }
+
+
+                    });
+                }
+
+                    else if (message instanceof ListFiles listFiles) {
+                    Platform.runLater(() -> {
+
                         serverView.getItems().clear();
                         serverView.getItems().addAll(listFiles.getFiles()); // выводим все файли с сервера
                         server.clear();
                         server.appendText(listFiles.getName());
+                        System.out.println(listFiles.getFiles());
 
                     });
 
@@ -98,28 +127,43 @@ public class ChatController implements Initializable {
     }
 
 
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        try {
 
+        try {
+//
             homeDir = "client_files";
             Path pat = Path.of(homeDir).toAbsolutePath();
             System.out.println(pat);
-            //setUsername(null);
-            //setUsername(username);
+
+
             clientView.getItems().clear();
             clientView.getItems().addAll(getFiles(homeDir));
+            client.clear();
+            client.appendText(homeDir);
+            serverView.getItems().add("1");
             //network = new Network(8289);
             doubleClickClient();
             doubleClickServer();
+          //  readLoop();
+//
 
+                    }catch (Exception e) {
+           System.err.println(e.getMessage());
+                    }
+        //
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-        }
-    }
+//        }catch (Exception e) {
+//            System.err.println(e.getMessage());
+//        }
+//    }
+                    }
+
+
+
 
     private List<String> getFiles(String dir) {
         String[] list = new File(dir).list();
@@ -229,10 +273,10 @@ public class ChatController implements Initializable {
     }
     // подключение клиента
     public void auth (ActionEvent actionEvent) throws IOException {
-        String name = login.getText();
-        String pas = password.getText();
-        network.write(new Auth(name,pas));// передаем логин и парольсс
-        System.out.println(login.getText() + password.getText());
+//        String name = login.getText();
+//        String pas = password.getText();
+//        network.write(new LogPass(name,pas));// передаем логин и парольсс
+//        System.out.println(login.getText() + password.getText());
 
     }
 // удаляем файл с клиента
@@ -256,8 +300,46 @@ public class ChatController implements Initializable {
 
     }
 
+// нажатие на кнопку войти
+    public void authButton(ActionEvent actionEvent) throws IOException {
+        String name = login.getText();
+        String pas = password.getText();
+        // передаем на сервер логим и пароль
+        network.write(new LogPass(name,pas));// передаем логин и пароль
+        System.out.println(login.getText() + password.getText() + "authButton");
+    }
+
+    public void registrationButton(ActionEvent actionEvent) {
+    }
+    public void authClient(){
+        try {
+
+            homeDir = "client_files";
+            Path pat = Path.of(homeDir).toAbsolutePath();
+            System.out.println(pat);
+
+
+            //setUsername(null);
+            //setUsername(username);
+            clientView.getItems().clear();
+            clientView.getItems().addAll(getFiles(homeDir));
+            client.clear();
+            client.appendText(homeDir);
+
+            //network = new Network(8289);
+            doubleClickClient();
+            doubleClickServer();
+
+//            Thread readThread = new Thread(this::readLoop);
+//            readThread.setDaemon(true);
+//            readThread.start();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
+    }
 
 }
+
 
 
 
