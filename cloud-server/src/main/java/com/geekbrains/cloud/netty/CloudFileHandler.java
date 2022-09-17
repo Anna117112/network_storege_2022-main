@@ -3,9 +3,11 @@ package com.geekbrains.cloud.netty;
 import com.geekbrains.cloud.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.util.Timeout;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Timer;
 
 public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> {
     private String nik;
@@ -13,6 +15,7 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
     private Path serverPath;
     private Path currentDir;
     private DbAuthenticationProvider dbAuthenticationProvider;
+
     
   //  private BdConnect dbConnection;
 
@@ -20,32 +23,80 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
        this.dbAuthenticationProvider = new DbAuthenticationProvider();
        dbAuthenticationProvider.init();
 
-       // currentDir = Path.of(SERVERFILES).resolve(nik);
+        currentDir = Path.of(SERVERFILES);
         serverPath = Path.of(SERVERFILES);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-       // currentDir = Path.of(SERVERFILES).resolve(nik);
-       // ctx.writeAndFlush(new ListFiles(currentDir));// отправляем  спиок файлов при подключении
+        //currentDir = Path.of(SERVERFILES).resolve(nik);
+        //ctx.writeAndFlush(new ListFiles(serverPath));// отправляем  спиок файлов при подключении
+        //System.out.println(serverPath + "channelActive");
+        //System.out.println( nik + "channelActive");
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cloudMessage) throws Exception {
         // запрос на вход передаем логин и пароль
-        if (cloudMessage instanceof Auth auth) {
-            // ищем по базе данных если находим передаем логин
-             nik = dbAuthenticationProvider.getNicknameByLoginAndPassword(auth.getLogin(), auth.getPassword());
+        if (cloudMessage instanceof LogPass logPass) {
+            boolean auth = false;
+            // ищем по базе данных если находим передаем true  если клиент есть
+             auth = dbAuthenticationProvider.booleanNicknameByLoginAndPassword(logPass.getLogin(), logPass.getPassword());
+             nik = dbAuthenticationProvider.getNicknameByLoginAndPassword(logPass.getLogin(), logPass.getPassword());
             System.out.println("Auth" + nik);
-            currentDir = Path.of(SERVERFILES).resolve(nik);
-            if (Files.exists(currentDir)) {
+           // currentDir = Path.of(SERVERFILES);
+            System.out.println(currentDir + "  logPass");
+            System.out.println(auth);
+            //currentDir = Path.of(SERVERFILES).resolve(nik);
+           // if (Files.exists(currentDir)) {
                 //currentDir = (currentDir.resolve(nik));
-                ctx.writeAndFlush(new ListFiles(currentDir));
+            if (auth){
+
+                ctx.writeAndFlush(new Auth(true));
             } else
-                Files.createDirectory(currentDir);
+                //Files.createDirectory(currentDir);
           //  currentDir = currentDir.resolve(nik);
-            ctx.writeAndFlush(new ListFiles(currentDir));
+            ctx.writeAndFlush(new Auth(false));
         }
+
+           // получаем от от панели авторизации ник
+        else if (cloudMessage instanceof AuthToServer authToServer){
+           // currentDir = Path.of(SERVERFILES).resolve(authToServer.getNik());
+
+            nik = authToServer.getNik();
+
+            System.out.println(currentDir + "  AuthToServer");
+            // путь ло папки клиерта
+            currentDir = Path.of(SERVERFILES).resolve(nik);
+            // если такая папка есть то передаем в лист ее
+            if (Files.exists(currentDir)) {
+               // currentDir = (currentDir.resolve(nik));
+
+                // отправляем на клиента
+                    ctx.writeAndFlush(new ListFiles(currentDir));
+                } else {
+                // если нет со создаем
+                Files.createDirectory(currentDir);
+                //  currentDir = currentDir.resolve(nik);
+                ctx.writeAndFlush(new ListFiles(currentDir));
+            }
+            }
+        // сообщение от панели регистарции
+        else if (cloudMessage instanceof Responce responce){
+            boolean res = true;
+            res = dbAuthenticationProvider.booleanNicknameByLoginAndPassword(responce.getResponceLogin(), responce.getResponcePassword());
+            // если пользователя нет в базе данных то записываем
+            if (!res){
+                dbAuthenticationProvider.executeUser(responce.getResponceLogin(), responce.getResponcePassword());
+                // передаем на клиет
+                ctx.writeAndFlush(new ResponceToClient(true));
+            }
+            else {
+                ctx.writeAndFlush(new ResponceToClient(false));
+            }
+        }
+
+
 
 
 

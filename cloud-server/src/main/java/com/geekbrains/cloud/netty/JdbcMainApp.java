@@ -53,11 +53,11 @@ public class JdbcMainApp {
     }
 
     private static void dropAndCreateTable() throws SQLException {
-       // stmt.executeUpdate("drop table if exists students;");
+        stmt.executeUpdate("drop table if exists users;");
         stmt.executeUpdate("CREATE TABLE if not exists users (\n" +
                 "    id    INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
                 "    name  TEXT,\n" +
-                "    score INTEGER\n" +
+                "    score TEXT\n" +
                 ");;");
     }
 
