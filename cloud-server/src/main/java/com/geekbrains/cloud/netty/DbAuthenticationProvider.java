@@ -1,10 +1,13 @@
 package com.geekbrains.cloud.netty;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DbAuthenticationProvider {
     private BdConnect dbConnection;
+    private Statement stmt;
 
     public void init() {
         dbConnection = new BdConnect();
@@ -35,5 +38,9 @@ public class DbAuthenticationProvider {
             e.printStackTrace();
         }
         return false;
+    }
+    // записывсем нового пользователя в базу данных
+    public void executeUser (String responceLogin, String responcePassword) throws SQLException {
+       dbConnection.getStmt().executeUpdate(String.format("insert into users (name, score) values ('%s', '%s');", responceLogin, responcePassword));
     }
 }

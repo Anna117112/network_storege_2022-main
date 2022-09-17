@@ -81,6 +81,20 @@ public class CloudFileHandler extends SimpleChannelInboundHandler<CloudMessage> 
                 ctx.writeAndFlush(new ListFiles(currentDir));
             }
             }
+        // сообщение от панели регистарции
+        else if (cloudMessage instanceof Responce responce){
+            boolean res = true;
+            res = dbAuthenticationProvider.booleanNicknameByLoginAndPassword(responce.getResponceLogin(), responce.getResponcePassword());
+            // если пользователя нет в базе данных то записываем
+            if (!res){
+                dbAuthenticationProvider.executeUser(responce.getResponceLogin(), responce.getResponcePassword());
+                // передаем на клиет
+                ctx.writeAndFlush(new ResponceToClient(true));
+            }
+            else {
+                ctx.writeAndFlush(new ResponceToClient(false));
+            }
+        }
 
 
 

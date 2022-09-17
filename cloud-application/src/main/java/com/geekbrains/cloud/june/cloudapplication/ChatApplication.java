@@ -34,7 +34,7 @@ public class ChatApplication extends Application {
 //    @Override
 //    public void start(Stage stage) throws IOException {
 //        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
-//        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("auth.fxml"));
+//       // FXMLLoader fxmlLoader1 = new FXMLLoader(getClass().getResource("auth.fxml"));
 //        Scene scene = new Scene(fxmlLoader.load());
 //        stage.setTitle("Chat");
 //        stage.setScene(scene);
@@ -45,4 +45,5 @@ public class ChatApplication extends Application {
 //    public static void main(String[] args) {
 //        launch();
 //    }
+
 }

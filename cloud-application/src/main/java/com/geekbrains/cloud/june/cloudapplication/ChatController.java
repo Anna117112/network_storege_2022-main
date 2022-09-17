@@ -5,11 +5,14 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 import lombok.SneakyThrows;
 
 import java.io.File;
@@ -22,7 +25,9 @@ import java.util.ResourceBundle;
 
 public class ChatController implements Initializable {
     private final int PORT = 8289;
+
     private Network network;
+
     {
         try {
             network = new Network(PORT);
@@ -30,8 +35,16 @@ public class ChatController implements Initializable {
             e.printStackTrace();
         }
     }
-
-
+//    @FXML
+//    public TextField responceLogin;
+//    @FXML
+//    public TextField responcePassword1;
+//    @FXML
+//    public TextField responcePassword2;
+//    @FXML
+//   public Label responceMessage;
+    @FXML
+    public Label authMessage;
     @FXML
     public TextField server;
     @FXML
@@ -47,13 +60,12 @@ public class ChatController implements Initializable {
 
     private String homeDir;
 
-    private  AuthController authController;
-
-
+    private AuthController authController;
 
 
     private String username;
-// панель авторизаци должна исчезать послеавторизации но не исчезает чтоне так
+
+    // панель авторизаци должна исчезать послеавторизации но не исчезает чтоне так
     // передаем в нее null после авторизаци передаем
 //    public void setUsername(String username) {
 //        boolean usernameIsNull = username == null;
@@ -77,10 +89,11 @@ public class ChatController implements Initializable {
                             try {
 
                                 System.out.println(login.getText() + "login.getText()");
-
+                               // переключаем сцену
                                 ChatApplication.setRoot("hello-view");
-                               // authClient();
-                                 network.write( new AuthToServer(login.getText()));
+                                // authClient();
+                                network.write(new AuthToServer(login.getText()));
+                                ///  Scene stage = (Stage) serverView.getScene().getWidth();
 
                                 // переключаем панель
 //                                ChatApplication.setRoot("hello-view");
@@ -90,13 +103,13 @@ public class ChatController implements Initializable {
                             }
                         } else {
                             System.out.println("введены неверные данные ");
+
+                            // как в Label authMessage вывести текст
                         }
 
 
                     });
-                }
-
-                    else if (message instanceof ListFiles listFiles) {
+                } else if (message instanceof ListFiles listFiles) {
                     Platform.runLater(() -> {
 
                         serverView.getItems().clear();
@@ -108,8 +121,7 @@ public class ChatController implements Initializable {
                     });
 
                     // передаем файл с сервера на клиент
-                }
-                else if (message instanceof FileMessage fileMessage) {
+                } else if (message instanceof FileMessage fileMessage) {
                     Path current = Path.of(homeDir).resolve(fileMessage.getName());
                     Files.write(current, fileMessage.getData());
                     Platform.runLater(() -> {
@@ -118,14 +130,12 @@ public class ChatController implements Initializable {
                     });
                 }
 
-                }
-
             }
-         catch (Exception e) {
+
+        } catch (Exception e) {
             System.err.println("Connection lost");
         }
     }
-
 
 
     @Override
@@ -142,27 +152,25 @@ public class ChatController implements Initializable {
             clientView.getItems().addAll(getFiles(homeDir));
             client.clear();
             client.appendText(homeDir);
-            serverView.getItems().add("1");
+          //  serverView.getItems().add("1");
             //network = new Network(8289);
             doubleClickClient();
             doubleClickServer();
-          //  readLoop();
+            //  readLoop();
 //
 
-                    }catch (Exception e) {
-           System.err.println(e.getMessage());
-                    }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
         //
-            Thread readThread = new Thread(this::readLoop);
-            readThread.setDaemon(true);
-            readThread.start();
+        Thread readThread = new Thread(this::readLoop);
+        readThread.setDaemon(true);
+        readThread.start();
 //        }catch (Exception e) {
 //            System.err.println(e.getMessage());
 //        }
 //    }
-                    }
-
-
+    }
 
 
     private List<String> getFiles(String dir) {
@@ -170,7 +178,8 @@ public class ChatController implements Initializable {
         assert list != null;
         return Arrays.asList(list);
     }
-// кнопка предачи файла не сервер
+
+    // кнопка предачи файла не сервер
     public void upload(ActionEvent actionEvent) throws IOException {
         //записываем в строку имя выбраного файла в fx
         String file = clientView.getSelectionModel().getSelectedItem();
@@ -178,11 +187,13 @@ public class ChatController implements Initializable {
         // отправляем путь к файлу
         network.write(new FileMessage(Path.of(homeDir).resolve(file)));
     }
-// скачать с сервера
+
+    // скачать с сервера
     public void download(ActionEvent actionEvent) throws IOException {
         String file = serverView.getSelectionModel().getSelectedItem();// выбранный файл
         network.write(new FileRequest(file));// передаем на сервер имя файла
     }
+
     // двойной клик по дирректории на листе клиенат должын раскрыть папки
     public void doubleClickClient() {
         clientView.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -192,13 +203,13 @@ public class ChatController implements Initializable {
                     // если был двойной клик то записываем в строку имя файла по которому был клик
                     String fileClient = clientView.getSelectionModel().getSelectedItem();
                     Path path = Path.of(homeDir).resolve(fileClient);
-                    System.out.println( "doubleClickClient   " +path);
+                    System.out.println("doubleClickClient   " + path);
 
-                    homeDir= path.toString();
+                    homeDir = path.toString();
                     // чистим лист
                     clientView.getItems().clear();
                     // передаем в метод имя директории который прописывет правильный путь и возвращает в dir путь до нового файла
-                  //  pathDirectory(fileClient);
+                    //  pathDirectory(fileClient);
                     // выводим на экран вложенные папки и файлы
                     clientView.getItems().addAll(getFiles(homeDir));
                     client.clear();
@@ -210,7 +221,7 @@ public class ChatController implements Initializable {
 //                    } catch (IOException e) {
 //                        e.printStackTrace();
 //                    }
-                 //   System.out.println(fileClient);
+                    //   System.out.println(fileClient);
 
 
                 } else
@@ -218,6 +229,7 @@ public class ChatController implements Initializable {
             }
         });
     }
+
     // двойной клик по списку папок сервера должен открыть вложения
     public void doubleClickServer() {
         serverView.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -227,7 +239,7 @@ public class ChatController implements Initializable {
                     // записываем в стрку имя дирректори/файла на которы клик был два раза
                     String fileServer = serverView.getSelectionModel().getSelectedItem();
                     Path path = Path.of(fileServer).toAbsolutePath();
-                    System.out.println( "doubleClickServer   "+path);
+                    System.out.println("doubleClickServer   " + path);
 
                     try {
                         // передаем инфо на сервер
@@ -242,7 +254,8 @@ public class ChatController implements Initializable {
             }
         });
     }
-//    private void pathDirectory (String name){
+
+    //    private void pathDirectory (String name){
 //        System.out.println(name + "pathDirectory");
 //
 //        Path path = Path.of(dir).resolve(name).toAbsolutePath();
@@ -257,30 +270,33 @@ public class ChatController implements Initializable {
         network.write(new PathUpRequest(" "));// передаем имя файла на сервер
 
     }
-// переход в родительскую дирректрию для клиента
+
+    // переход в родительскую дирректрию для клиента
     public void upClientFiles(ActionEvent actionEvent) throws IOException {
 
 
         Path path = Path.of(homeDir).getParent();
         homeDir = path.toString();
-       // network.write(new PathUpRequest("c"));
+        // network.write(new PathUpRequest("c"));
 
         clientView.getItems().clear();
         clientView.getItems().addAll(getFiles(homeDir));
         client.clear();
         client.appendText(homeDir);
-       // C:\Users\adyak\IdeaProjects\geek-cloud-2022-june\client_files\1
+        // C:\Users\adyak\IdeaProjects\geek-cloud-2022-june\client_files\1
     }
+
     // подключение клиента
-    public void auth (ActionEvent actionEvent) throws IOException {
+    public void auth(ActionEvent actionEvent) throws IOException {
 //        String name = login.getText();
 //        String pas = password.getText();
 //        network.write(new LogPass(name,pas));// передаем логин и парольсс
 //        System.out.println(login.getText() + password.getText());
 
     }
-// удаляем файл с клиента
-    public void deleteFileClient(ActionEvent actionEvent){
+
+    // удаляем файл с клиента
+    public void deleteFileClient(ActionEvent actionEvent) {
         String file = clientView.getSelectionModel().getSelectedItem();
         Path path = Path.of(homeDir).resolve(file);
         try {
@@ -296,22 +312,31 @@ public class ChatController implements Initializable {
 
 
     }
-    public void deleteFileServer(ActionEvent actionEvent){
+
+    public void deleteFileServer(ActionEvent actionEvent) {
 
     }
 
-// нажатие на кнопку войти
+    // нажатие на кнопку войти
     public void authButton(ActionEvent actionEvent) throws IOException {
         String name = login.getText();
         String pas = password.getText();
         // передаем на сервер логим и пароль
-        network.write(new LogPass(name,pas));// передаем логин и пароль
+        network.write(new LogPass(name, pas));// передаем логин и пароль
         System.out.println(login.getText() + password.getText() + "authButton");
     }
-
+// при нажатии на кнопку регитсрации
     public void registrationButton(ActionEvent actionEvent) {
+        try {
+            // меняем сцену
+            ChatApplication.setRoot("responce");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
-    public void authClient(){
+
+    public void authClient() {
         try {
 
             homeDir = "client_files";
@@ -338,7 +363,33 @@ public class ChatController implements Initializable {
         }
     }
 
+    public void exit(ActionEvent actionEvent) {
+        try {
+            ChatApplication.setRoot("auth");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+//    public void openPanelAuth(ActionEvent actionEvent) {
+//        if ((responceLogin.getText().isEmpty()) && (responcePassword1.getText().isEmpty())&&(responcePassword2.getText().isEmpty()) ){
+//            System.out.println("Введите логин  и пароль " );
+//        }
+//        else if (!(responcePassword1.getText().equals(responcePassword2.getText()))){
+//            System.out.println("Пароли не совпадают ");
+//        }
+//        else {
+//            try {
+//                network.write( new Responce(responceLogin.getText(), responcePassword1.getText()));
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
+//    }
 }
+
+
 
 
 

@@ -14,7 +14,7 @@
             <Button layoutX="160.0" layoutY="97.0" onAction="#authButton" text="Войти" />
             <TextField fx:id="login" layoutX="19.0" layoutY="39.0" promptText="введите логин" />
             <TextField fx:id="password" layoutX="201.0" layoutY="39.0" promptText="введите пароль" />
-            <Label fx:id="serverMessage" layoutX="42.0" layoutY="153.0" prefHeight="50.0" prefWidth="294.0" />
+            <Label fx:id="authMessage" layoutX="42.0" layoutY="153.0" prefHeight="50.0" prefWidth="294.0" />
             <Button layoutX="53.0" layoutY="236.0" mnemonicParsing="false" onAction="#registrationButton" prefHeight="26.0" prefWidth="275.0" text="Регистрация" />
          </children>
       </AnchorPane>
